@@ -1,0 +1,9 @@
+pydantic==1.10
+fastapi==0.110.0
+sqlalchemy==2.0.30
+alembic==1.13.0
+
+jsonschema==4.23.0
+pyyaml==6.0.1
+
+isjsonschemasubset

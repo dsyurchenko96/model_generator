@@ -1,0 +1,33 @@
+kind: application
+
+name: hello-world
+
+description: Hello World application
+
+version: 0.1.0
+
+configuration:
+
+   specification:
+
+     specification_aaa: <any value>
+
+     specification_aab: <any value>
+
+     specification_aac: <any value>
+
+     specification_zzy: <any value>
+
+     specification_zzz: <any value>
+
+   settings:
+
+     setting_aaa: <any value>
+
+     setting_aab: <any value>
+
+     setting_aac: <any value>
+
+     setting_zzy: <any value>
+
+     setting_zzz: <any value>
