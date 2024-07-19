@@ -6,4 +6,4 @@ alembic==1.13.0
 jsonschema==4.23.0
 pyyaml==6.0.1
 
-isjsonschemasubset
+datamodel-code-generator==0.25.8

@@ -37,7 +37,11 @@
           "type": "object"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "specification",
+        "settings"
+      ]
 
 
     }
