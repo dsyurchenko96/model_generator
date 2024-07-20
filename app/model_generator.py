@@ -1,6 +1,6 @@
-from datamodel_code_generator import InputFileType, DataModelType, generate
 from pathlib import Path
-from tempfile import TemporaryDirectory
+
+from datamodel_code_generator import DataModelType, InputFileType, generate
 
 
 def generate_model(schema_string, schema, output_dir):
@@ -10,7 +10,6 @@ def generate_model(schema_string, schema, output_dir):
     kind = schema["properties"]["kind"]["title"]
     output_name = f"{kind}Model.py"
     output = Path(f"{output_dir}/{output_name}")
-
 
     generate(
         schema_string,
@@ -23,7 +22,3 @@ def generate_model(schema_string, schema, output_dir):
     model: str = output.read_text()
     with open(output, "w") as file:
         file.write(model)
-
-
-
-

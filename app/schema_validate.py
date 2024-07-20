@@ -1,11 +1,9 @@
 import argparse
 import json
+import sys
+
 import jsonschema
 import yaml
-import sys
-from pprint import pprint
-
-from main_schema_gen import semver_regex
 from model_generator import generate_model
 
 
@@ -13,27 +11,31 @@ def main(argv: list[str] = None) -> int:
     main_schema_filename = "main_schema.json"
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--json-schema", type=str, required=True, help="Path to JSON Schema")
+    parser.add_argument(
+        "--json-schema", type=str, required=True, help="Path to JSON Schema"
+    )
     parser.add_argument("--out-dir", type=str, default="rest", help="Output directory")
 
     args = parser.parse_args(argv)
-    # print(args)
     if args.json_schema == '':
         parser.error('--json-schema is missing required argument')
         return 1
 
     try:
-        with open(main_schema_filename, "r") as main_schema_file, open(args.json_schema, "r") as user_schema_file:
+        with open(main_schema_filename) as main_schema_file, open(
+            args.json_schema
+        ) as user_schema_file:
             main_schema = json.load(main_schema_file)
-            # print(validator)
+            jsonschema.Draft202012Validator.check_schema(main_schema)
+
             if args.json_schema.endswith(".yaml"):
                 user_schema = yaml.safe_load(user_schema_file)
-                # json.dump(json_schema, sys.stdout, indent=2)
             else:
                 user_schema = json.load(user_schema_file)
                 user_schema_string = json.dumps(user_schema)
+            jsonschema.Draft202012Validator.check_schema(user_schema)
 
-            if validate_subset(user_schema):
+            if is_subset(user_schema, main_schema):
                 print(f"{args.json_schema} is a subset of {main_schema_filename}")
                 generate_model(user_schema_string, user_schema, args.out_dir)
             else:
@@ -42,7 +44,7 @@ def main(argv: list[str] = None) -> int:
     except FileNotFoundError as fnf:
         parser.error(f"{fnf.filename} not found")
         return 1
-    except json.decoder.JSONDecodeError as jde:
+    except json.decoder.JSONDecodeError:
         parser.error(f"{args.json_schema} is not a valid JSON file")
         return 1
     except jsonschema.exceptions.ValidationError as ve:
@@ -52,55 +54,73 @@ def main(argv: list[str] = None) -> int:
     return 0
 
 
-def validate_subset(user_schema) -> bool:
-    max_field_lengths = {
-        "kind": 32,
-        "name": 128,
-        "description": 4096,
-    }
-    properties = user_schema["properties"]
-    for field, length in max_field_lengths.items():
-        if field not in properties \
-                or length > properties[field]["maxLength"] \
-                or properties[field]["type"] != "string":
-            print(f"Field {field} is not a valid field in the schema")
+def is_subset(user_schema: dict, main_schema: dict) -> bool:
+    user_properties = user_schema.get("properties", {})
+    main_properties = main_schema.get("properties", {})
+    for field in main_properties.keys():
+        if field not in user_properties.keys() or (
+            field != "configuration"
+            and user_properties[field].get("type", "")
+            != main_properties[field].get("type")
+        ):
+            print(f"Field {field} is missing in the schema", file=sys.stderr)
+            return False
+        elif field in ["kind", "name", "description"] and user_properties[field].get(
+            "maxLength", float("inf")
+        ) > main_properties[field].get("maxLength"):
+            print(f"Max length of field {field} is not valid", file=sys.stderr)
+            return False
+        elif field == "version" and user_properties[field].get(
+            "pattern", ""
+        ) != main_properties[field].get("pattern"):
+            print("Version pattern is not valid", file=sys.stderr)
             return False
 
-    if "version" not in properties \
-            or "pattern" not in properties["version"] \
-            or properties["version"]["pattern"] != semver_regex \
-            or properties["version"]["type"] != "string":
-        print(f"Field version is not a valid field in the schema")
+    if user_schema.get("required", []) != main_schema.get(
+        "required", None
+    ) or user_schema.get("additionalProperties", True) != main_schema.get(
+        "additionalProperties", None
+    ):
+        print("Required fields are not valid", file=sys.stderr)
         return False
 
-    if user_schema["required"] != ["kind", "name", "description", "version", "configuration"] \
-            or user_schema["additionalProperties"] is not False:
-        print(f"Field configuration is not a valid field in the schema")
-        return False
+    user_config = get_configuration(user_schema)
+    main_config = get_configuration(main_schema)
+    return validate_configuration(user_config, main_config)
 
-    if "configuration" not in properties:
-        return False
 
-    config = properties["configuration"]
+def get_configuration(schema: dict) -> dict:
+    config = schema.get("properties", {}).get("configuration", {})
     if "$ref" in config:
         sub_schema = config["$ref"].split("#/definitions/")[-1]
-        if sub_schema not in user_schema["definitions"]:
-            print(f"Field {sub_schema} is not a valid field in the schema definitions")
+        config = schema["definitions"].get(sub_schema, {})
+    return config
+
+
+def validate_configuration(user_configuration: dict, main_configuration: dict) -> bool:
+    main_config_props = main_configuration.get("properties", {})
+    user_config_props = user_configuration.get("properties", {})
+    for field in main_config_props.keys():
+        if field not in user_config_props.keys():
+            print(f"Field {field} is missing in the schema configuration")
             return False
-        config = user_schema["definitions"][sub_schema]
-
-    return validate_configuration(config)
-
-
-def validate_configuration(configuration: dict) -> bool:
-
-    for spec in ["specification", "settings"]:
-        if spec not in configuration["properties"] \
-                or configuration["properties"][spec]["type"] != "object"\
-                or spec not in configuration["required"]:
+        elif user_config_props[field].get("type", "") != main_config_props[field].get(
+            "type"
+        ):
+            print(
+                f"Type of field {field} is not a valid type in the schema configuration"
+            )
             return False
 
-    return configuration["additionalProperties"] is False
+    if user_configuration.get("required", []) != main_configuration.get(
+        "required", None
+    ) or user_configuration.get("additionalProperties", True) != main_configuration.get(
+        "additionalProperties", None
+    ):
+        print("Required fields are not valid in the schema configuration")
+        return False
+
+    return True
 
 
 if __name__ == '__main__':
