@@ -1,0 +1,101 @@
+{
+  "title": "check",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "title": "check",
+      "maxLength": 30,
+      "minLength": 10,
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "maxLength": 59,
+      "minLength": 20,
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "maxLength": 1000,
+      "minLength": 2,
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "pattern": "^(?P<major>0|[1-9]\\d*)\\.(?P<minor>0|[1-9]\\d*)\\.(?P<patch>0|[1-9]\\d*)(?:-(?P<prerelease>(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+      "type": "string"
+    },
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "specification": {
+          "title": "Specification",
+          "type": "object",
+          "properties": {
+            "specification_aaa": {
+              "title": "Specification Aaa",
+              "type": "string"
+            },
+            "specification_aab": {
+              "title": "Specification Aab",
+              "type": "string"
+            },
+            "specification_aac": {
+              "title": "Specification Aac",
+              "type": "string"
+            },
+            "specification_zzy": {
+              "title": "Specification Zzy",
+              "type": "string"
+            },
+            "specification_zzz": {
+              "title": "Specification Zzz",
+              "type": "string"
+            }
+          }
+        },
+        "settings": {
+          "title": "Settings",
+          "type": "object",
+          "properties": {
+            "settings_aaa": {
+              "title": "Settings Aaa",
+              "type": "string"
+            },
+            "settings_aab": {
+              "title": "Settings Aab",
+              "type": "string"
+            },
+            "settings_aac": {
+              "title": "Settings Aac",
+              "type": "string"
+            },
+            "settings_zzy": {
+              "title": "Settings Zzy",
+              "type": "string"
+            },
+            "settings_zzz": {
+              "title": "Settings Zzz",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "specification",
+        "settings"
+      ]
+
+
+    }
+  },
+  "required": [
+    "kind",
+    "name",
+    "description",
+    "version",
+    "configuration"
+  ],
+  "additionalProperties": false
+}
