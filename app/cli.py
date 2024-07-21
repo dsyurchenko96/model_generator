@@ -6,9 +6,9 @@ from typing import Optional, TextIO
 import jsonschema
 import yaml
 
-from app.main_schema_gen import generate_main_schema
-from app.model_generator import generate_model
-from app.schema_validate import is_subset
+from app.utils.main_schema_gen import generate_main_schema
+from app.utils.model_generator import generate_model
+from app.utils.schema_validate import is_subset
 
 main_schema_filename = "schemas/main_schema.json"
 

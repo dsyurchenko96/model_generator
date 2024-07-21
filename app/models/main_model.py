@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import TypedDict
 
 from pydantic import BaseModel, Field
@@ -26,14 +25,5 @@ class MainModel(BaseModel):
     version: str = Field(pattern=semver_regex)
     configuration: SchemaConfigField
 
-
-def generate_main_schema(filename: str = "main_schema.json"):
-    main_model_schema = MainModel.schema_json(indent=2)
-    if not Path(filename).parent.is_dir():
-        Path(filename).parent.mkdir(parents=True)
-    with open(filename, "w") as f:
-        f.write(main_model_schema)
-
-
-if __name__ == '__main__':
-    generate_main_schema()
+    def __repr__(self):
+        return f"MainModel({self.kind}, {self.name}, {self.version}, {self.description}, {self.configuration})"
