@@ -40,7 +40,7 @@ COPY . .
 RUN export PYTHONPATH=$PWD
 RUN pip install -e .
 
-WORKDIR /src/app
+WORKDIR /src
 
 # Switch to the non-privileged user to run the application.
 USER appuser
@@ -49,4 +49,4 @@ USER appuser
 EXPOSE 8000
 
 # Run the application.
-CMD uvicorn fastapi_app:app --reload --host=0.0.0.0 --port=8000
+CMD uvicorn app.fastapi_app:app --reload --host=0.0.0.0 --port=8000

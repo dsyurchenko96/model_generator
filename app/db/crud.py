@@ -23,3 +23,11 @@ def create_document(db: Session, document: App):
     db.commit()
     db.refresh(document)
     return document
+
+
+def delete_document(db: Session, uuid: UUID):
+    response = db.query(App).filter(App.uuid == uuid).first()
+    if response is None:
+        return None
+    db.delete(response)
+    db.commit()
