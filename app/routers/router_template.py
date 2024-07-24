@@ -37,7 +37,7 @@ def post_document(
     )
     response = crud.create_document(db, app)
     if response is None:
-        raise HTTPException(status_code=500, detail="Can't create document")
+        raise HTTPException(status_code=409, detail="Document already exists")
     return doc_id
 
 
@@ -48,3 +48,31 @@ def delete_document(uuid: UUID, db: Session = Depends(get_db)) -> None:
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return None
+
+@router.get("/{uuid}/", status_code=200)
+def get_document(uuid: UUID, db: Session = Depends(get_db)):
+    response = crud.read_document(db, uuid)
+    if response is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return response
+
+@router.get("/{uuid}/state/", status_code=200)
+def get_document_state(uuid: UUID, db: Session = Depends(get_db)):
+    response = crud.read_document(db, uuid)
+    if response is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return response.state
+
+@router.put("/{uuid}/state/", status_code=200)
+def put_document_state(uuid: UUID, state: StateEnum, db: Session = Depends(get_db)):
+    response = crud.update_document_state(db, uuid, state)
+    if response is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return response
+
+@router.put("/{uuid}/configuration/", status_code=200)
+def put_document_config(uuid: UUID, config: dict, db: Session = Depends(get_db)):
+    response = crud.update_document_configuration(db, uuid, config)
+    if response is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return response
