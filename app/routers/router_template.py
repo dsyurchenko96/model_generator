@@ -33,7 +33,7 @@ def post_document(
         version=document.version,
         description=document.description,
         state=state,
-        json=document.dict(),
+        json=document.json(),
     )
     response = crud.create_document(db, app)
     if response is None:
