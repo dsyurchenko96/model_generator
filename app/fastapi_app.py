@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException, RequestValidationError
+from pydantic import ValidationError as PydanticValidationError
 
 from app.routers.router_template import router
 from app.models.app_model import Base
@@ -15,7 +16,7 @@ app = FastAPI(
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
-    raise HTTPException(status_code=400, detail="Validation Error")
+    raise HTTPException(status_code=400, detail=exc.errors()[0]['msg'])
 
 
 app.include_router(router)

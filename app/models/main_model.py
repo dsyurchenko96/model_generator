@@ -22,7 +22,7 @@ class MainModel(BaseModel):
     kind: str = Field(min_length=1, max_length=32)
     name: str = Field(min_length=1, max_length=128)
     description: str = Field(min_length=1, max_length=4096)
-    version: str = Field(pattern=semver_regex)
+    version: str = Field(regex=semver_regex)
     configuration: SchemaConfigField
 
     def __repr__(self):
