@@ -40,7 +40,7 @@ COPY . .
 RUN export PYTHONPATH=$PWD
 RUN pip install -e .
 
-WORKDIR /src
+WORKDIR /src/app
 
 # Switch to the non-privileged user to run the application.
 USER appuser

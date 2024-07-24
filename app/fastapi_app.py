@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.exceptions import HTTPException, RequestValidationError
 
 from app.routers.router_template import router
+from app.models.app_model import Base
+from app.db.database import engine
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="JSON to Pydantic Generator",

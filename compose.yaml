@@ -20,10 +20,10 @@ services:
       - db-password
     volumes:
       - ./db:/docker-entrypoint-initdb.d
-#      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=apps_db
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+      - POSTGRES_MULTIPLE_DATABASES=app,app_test
     expose:
       - 5432
     healthcheck:
@@ -32,8 +32,8 @@ services:
       timeout: 5s
       retries: 5
 
-#volumes:
-#  db-data:
+volumes:
+ db-data:
 secrets:
   db-password:
     file: db/password.txt

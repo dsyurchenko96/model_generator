@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app.db import crud
 from app.db.database import get_db
 from app.models.app_model import App, StateEnum
-from app.utils.main_schema_gen import MainModel
+from app.models.main_model import MainModel
 
 router = APIRouter(
     prefix="/kind",
