@@ -1,19 +1,19 @@
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
-from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.db import crud
 from app.db.database import get_db
-from app.models.app_model import App, StateEnum
-from app.models.main_model import MainModel
+from app.models.app_model import App, Id, StateEnum
+from app.models.main_model import MainModel, SchemaConfigField
 
 router = APIRouter(
     prefix="/kind",
     responses={
         "400": {"description": "Bad Request"},
         "404": {"description": "Not Found"},
+        "409": {"description": "Conflict"},
         "500": {"description": "Internal Server Error"},
     },
 )
@@ -41,37 +41,45 @@ def post_document(
     return doc_id
 
 
-@router.delete("/{uuid}/", status_code=204, response_model=None,
-               responses={"204": {"description": "Document deleted successfully"}})
-def delete_document(uuid: UUID, db: Session = Depends(get_db)) -> None:
+@router.delete(
+    "/{uuid}/",
+    status_code=204,
+    response_model=None,
+    responses={"204": {"description": "Document deleted successfully"}},
+)
+def delete_document(uuid: Id, db: Session = Depends(get_db)) -> None:
     response = crud.delete_document(db, uuid)
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return None
 
+
 @router.get("/{uuid}/", status_code=200)
-def get_document(uuid: UUID, db: Session = Depends(get_db)):
+def get_document(uuid: Id, db: Session = Depends(get_db)):
     response = crud.read_document(db, uuid)
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return response
 
+
 @router.get("/{uuid}/state/", status_code=200)
-def get_document_state(uuid: UUID, db: Session = Depends(get_db)):
+def get_document_state(uuid: Id, db: Session = Depends(get_db)):
     response = crud.read_document(db, uuid)
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return response.state
 
+
 @router.put("/{uuid}/state/", status_code=200)
-def put_document_state(uuid: UUID, state: StateEnum, db: Session = Depends(get_db)):
+def put_document_state(uuid: Id, state: StateEnum, db: Session = Depends(get_db)):
     response = crud.update_document_state(db, uuid, state)
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return response
 
+
 @router.put("/{uuid}/configuration/", status_code=200)
-def put_document_config(uuid: UUID, config: dict, db: Session = Depends(get_db)):
+def put_document_config(uuid: Id, config: SchemaConfigField, db: Session = Depends(get_db)):
     response = crud.update_document_configuration(db, uuid, config)
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")
