@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -9,9 +9,12 @@ semver_regex = (
 )
 
 
-class SchemaConfigField(TypedDict):
-    specification: dict
-    settings: dict
+class SchemaConfigField(BaseModel):
+    class Config:
+        extra = "forbid"
+
+    specification: dict[str, Any] = Field(..., title='Specification')
+    settings: dict[str, Any] = Field(..., title='Settings')
 
 
 class MainModel(BaseModel):

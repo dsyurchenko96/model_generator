@@ -19,17 +19,17 @@ class TestPostDocument:
         assert response.status_code == 201
 
     def test_invalid_version(self, test_client, db_session):
-        json = deepcopy(valid_json)
-        json["version"] = "1.0"
-        response = test_client.post("/kind", json=json)
+        json_copy = deepcopy(valid_json)
+        json_copy["version"] = "1.0"
+        response = test_client.post("/kind", json=json_copy)
         print(response.json())
         assert response.status_code == 400
         assert response.json()["detail"].startswith("string does not match regex")
 
     def test_extra_fields(self, test_client, db_session):
-        json = deepcopy(valid_json)
-        json["configuration"]["extra_field"] = "test"
-        response = test_client.post("/kind", json=json)
+        json_copy = deepcopy(valid_json)
+        json_copy["configuration"]["extra_field"] = "test"
+        response = test_client.post("/kind", json=json_copy)
         print(response.json())
         assert response.status_code == 400
         assert response.json()["detail"] == "extra fields not permitted"
@@ -41,17 +41,17 @@ class TestPostDocument:
         assert response.json()["detail"] == "field required"
 
     def test_empty_fields(self, test_client, db_session):
-        json = deepcopy(valid_json)
-        json["kind"] = ""
-        response = test_client.post("/kind", json=json)
+        json_copy = deepcopy(valid_json)
+        json_copy["kind"] = ""
+        response = test_client.post("/kind", json=json_copy)
         print(response.json())
         assert response.status_code == 400
         assert response.json()["detail"] == "ensure this value has at least 1 characters"
 
     def test_missing_fields(self, test_client, db_session):
-        json = deepcopy(valid_json)
-        json.pop("kind")
-        response = test_client.post("/kind", json=json)
+        json_copy = deepcopy(valid_json)
+        json_copy.pop("kind")
+        response = test_client.post("/kind", json=json_copy)
         print(response.json())
         assert response.status_code == 400
         assert response.json()["detail"] == "field required"
@@ -138,15 +138,15 @@ class TestPutDocumentConfig:
         assert post_response.status_code == 201
         assert post_response.json() is not None
         uuid = post_response.json()
-        config = {
+        config_dict = {
             "settings": {"settingA": "valueA", "settingB": "valueB"},
             "specification": {"specificationA": "valueA", "specificationB": "valueB"},
         }
-        put_response = test_client.put(f"/kind/{uuid}/configuration", json=config)
+        put_response = test_client.put(f"/kind/{uuid}/configuration", json=config_dict)
         print("the put response is:\n", put_response.json())
         assert put_response.status_code == 200
         json_dict = json.loads(put_response.json().get("json"))
-        assert json_dict["configuration"] == config
+        assert json_dict["configuration"] == config_dict
 
     def test_invalid_config(self, test_client, db_session):
         post_response = test_client.post("/kind", json=valid_json)
@@ -155,6 +155,34 @@ class TestPutDocumentConfig:
         assert post_response.json() is not None
         uuid = post_response.json()
         put_response = test_client.put(f"/kind/{uuid}/configuration", json={"json": {"invalid": "invalid"}})
+        print(put_response.json())
+        assert put_response.status_code == 400
+
+    def test_invalid_config_extra_field(self, test_client, db_session):
+        post_response = test_client.post("/kind", json=valid_json)
+        print(post_response.json())
+        assert post_response.status_code == 201
+        assert post_response.json() is not None
+        uuid = post_response.json()
+        config = {
+            "settings": {"settingA": "valueA", "settingB": "valueB"},
+            "specification": {"specificationA": "valueA", "specificationB": "valueB"},
+            "extra": "extra",
+        }
+        put_response = test_client.put(f"/kind/{uuid}/configuration", json=config)
+        print(put_response.json())
+        assert put_response.status_code == 400
+
+    def test_invalid_config_missing_field(self, test_client, db_session):
+        post_response = test_client.post("/kind", json=valid_json)
+        print(post_response.json())
+        assert post_response.status_code == 201
+        assert post_response.json() is not None
+        uuid = post_response.json()
+        config = {
+            "settings": {"settingA": "valueA", "settingB": "valueB"},
+        }
+        put_response = test_client.put(f"/kind/{uuid}/configuration", json=config)
         print(put_response.json())
         assert put_response.status_code == 400
 

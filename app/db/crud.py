@@ -41,7 +41,7 @@ def update_document_configuration(db: Session, uuid: Id, configuration: SchemaCo
         return None
     json_str = str(response.json)
     json_dict = json.loads(json_str)
-    json_dict["configuration"] = configuration
+    json_dict["configuration"] = configuration.__dict__
     response.json = json.dumps(json_dict)  # type: ignore
     db.merge(response)
     db.commit()
