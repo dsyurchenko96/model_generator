@@ -49,6 +49,20 @@ def update_document_configuration(db: Session, uuid: Id, configuration: SchemaCo
     return response
 
 
+def update_document_settings(db: Session, uuid: Id, settings: dict):
+    response = db.query(App).filter_by(uuid=uuid).first()
+    if response is None:
+        return None
+    json_str = str(response.json)
+    json_dict = json.loads(json_str)
+    json_dict["configuration"]["settings"] = settings
+    response.json = json.dumps(json_dict)  # type: ignore
+    db.merge(response)
+    db.commit()
+    db.refresh(response)
+    return response
+
+
 def delete_document(db: Session, uuid: Id) -> Type[App] | None:
     response = db.query(App).filter_by(uuid=uuid).first()
     if response is None:

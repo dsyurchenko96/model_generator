@@ -166,3 +166,34 @@ class TestPutDocumentConfig:
         put_response = test_client.put(f"/kind/{uuid4()}/configuration", json={"json": config})
         print(put_response.json())
         assert put_response.status_code == 400
+
+
+class TestPutDocumentSettings:
+    def test_valid_settings(self, test_client, db_session):
+        post_response = test_client.post("/kind", json=valid_json)
+        print(post_response.json())
+        assert post_response.status_code == 201
+        assert post_response.json() is not None
+        uuid = post_response.json()
+        settings = {"settingA": "valueA", "settingB": "valueB"}
+        put_response = test_client.put(f"/kind/{uuid}/settings", json=settings)
+        print(put_response.json())
+        assert put_response.status_code == 200
+        json_dict = json.loads(put_response.json().get("json"))
+        assert json_dict["configuration"]["settings"] == settings
+
+    def test_invalid_settings(self, test_client, db_session):
+        post_response = test_client.post("/kind", json=valid_json)
+        print(post_response.json())
+        assert post_response.status_code == 201
+        assert post_response.json() is not None
+        uuid = post_response.json()
+        put_response = test_client.put(f"/kind/{uuid}/settings", json="invalid")
+        print(put_response.json())
+        assert put_response.status_code == 400
+
+    def test_valid_settings_invalid_uuid(self, test_client, db_session):
+        settings = {"settingA": "valueA", "settingB": "valueB"}
+        put_response = test_client.put(f"/kind/{uuid4()}/settings", json=settings)
+        print(put_response.json())
+        assert put_response.status_code == 404

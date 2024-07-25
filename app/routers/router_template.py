@@ -84,3 +84,11 @@ def put_document_config(uuid: Id, config: SchemaConfigField, db: Session = Depen
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")
     return response
+
+
+@router.put("/{uuid}/settings/", status_code=200)
+def put_document_settings(uuid: Id, settings: dict, db: Session = Depends(get_db)):
+    response = crud.update_document_settings(db, uuid, settings)
+    if response is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return response
