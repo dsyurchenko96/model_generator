@@ -40,12 +40,14 @@ def validate_arguments(parser: argparse.ArgumentParser, args: argparse.Namespace
     if args.subcommand == 'gen-models':
         # if not is_valid_filename(args.json_schema):
         #     parser.error(f'--json-schema {args.json_schema} is not a valid filename')
-        # elif args.json_schema == '':
-        #     parser.error('--json-schema is missing required argument')
-        if not is_valid_filepath(args.out_dir):
+        if args.json_schema == '':
+            parser.error('--json-schema is missing required argument')
+        elif not is_valid_filepath(args.out_dir):
             parser.error(f'--out-dir {args.out_dir} is not a valid filepath')
 
     elif args.subcommand == 'gen-rest':
+        if args.models == '':
+            parser.error('--models is missing required argument')
         if not is_valid_filepath(args.models):
             parser.error(f'--models {args.models} is not a valid filepath')
         elif not is_valid_filepath(args.rest_routes):
@@ -99,6 +101,7 @@ def gen_rest(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     create_output_dir_if_not_exists(args.rest_routes)
     abs_directory = Path(args.models).resolve()
     print(f"abs_directory: {abs_directory}")
+    routers = []
     for path in abs_directory.glob("*.py"):
         if path.name == "__init__.py":
             continue
@@ -115,7 +118,7 @@ def gen_rest(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
             parser.error(f"{path.resolve()} is not a valid model file. The filename must be <ModelKind>Model.py")
         if not is_valid_python_file(path.resolve()):
             parser.error(f"{path.resolve()} is not a valid Python file")
-        model_dir = get_model_dir(abs_directory, module_name)
+        model_dir = get_module_dir(abs_directory, module_name)
         print(f"model_dir: {model_dir}")
         values = {
             'model_dir': model_dir,
@@ -125,14 +128,24 @@ def gen_rest(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
         }
         print(f"generating router for {path.resolve()} with values: {values}")
         generate_router(values, kind, args.rest_routes)
+        router_dir = get_module_dir(Path(args.rest_routes).resolve(), kind + "Router")
+        routers.append((router_dir, kind + "Router"))
+    insert_routers_into_init_file(routers)
     return 0
 
 
-def get_model_dir(abs_directory: Path, module_name: str) -> str:
+def insert_routers_into_init_file(routers: list[tuple[str, str]]) -> None:
+    with open('__init__.py', 'w') as f:
+        for router_dir, router in routers:
+            f.write(f'from {router_dir} import router as {router}\n')
+        f.write(f"\n\n__all__ = [{', '.join(r[1] for r in routers)}]\n")
+
+
+def get_module_dir(abs_directory: Path, module_name: str) -> str:
     dir_array = abs_directory.parts
     app_index = dir_array.index("app")
-    model_dir = ".".join(dir_array[app_index:]) + "." + module_name
-    return model_dir
+    module_dir = ".".join(dir_array[app_index:]) + "." + module_name
+    return module_dir
 
 
 def is_valid_python_file(path: Path) -> bool:

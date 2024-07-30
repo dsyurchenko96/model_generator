@@ -1,6 +1,7 @@
 import json
 from typing import Type
 
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app.models.app_model import App, Id, StateEnum
@@ -40,8 +41,9 @@ def update_document_configuration(db: Session, uuid: Id, configuration: SchemaCo
     if response is None:
         return None
     json_str = str(response.json)
-    json_dict = json.loads(json_str)
-    json_dict["configuration"] = configuration.__dict__
+    dic = json.loads(json_str)
+    dic["configuration"] = configuration.__dict__
+    json_dict = jsonable_encoder(dic)
     response.json = json.dumps(json_dict)  # type: ignore
     db.merge(response)
     db.commit()
