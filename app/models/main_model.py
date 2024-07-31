@@ -9,7 +9,7 @@ semver_regex = (
 )
 
 
-class SchemaConfigField(BaseModel):
+class Configuration(BaseModel):
     class Config:
         extra = "forbid"
 
@@ -26,7 +26,7 @@ class MainModel(BaseModel):
     name: str = Field(min_length=1, max_length=128)
     description: str = Field(min_length=1, max_length=4096)
     version: str = Field(regex=semver_regex)
-    configuration: SchemaConfigField
+    configuration: Configuration
 
     def __repr__(self):
         return f"MainModel({self.kind}, {self.name}, {self.version}, {self.description}, {self.configuration})"

@@ -3,6 +3,7 @@ services:
     container_name: model_gen
     build:
       context: .
+    working_dir: /src/app
     ports:
       - 8000:8000
     restart: always

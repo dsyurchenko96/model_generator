@@ -3,16 +3,20 @@ CONTAINERS=$(shell docker ps -q -a)
 
 DB=db
 SERVER=model_gen
+TEST_DIR=test
 
-all: up
-
-up: permissions
-	docker-compose up -d
+all: run
 
 permissions:
 	chmod +x db/001-create-multiple-postgresql-databases.sh
 
-run: up
+build: permissions
+	docker-compose up -d --build
+
+up:
+	docker-compose up -d
+
+run: build
 	docker exec -it $(SERVER) bash
 
 down:
@@ -21,11 +25,8 @@ down:
 view_db: up
 	docker exec -it $(DB) psql -d app -U postgres
 
-view_test_db: up
-	docker exec -it $(DB) psql -d app_test -U postgres
-
 test: up
-	docker exec -it $(SERVER) pytest -v -s test/
+	docker exec -it $(SERVER) pytest -v $(TEST_DIR)
 
 logs: up
 	docker-compose logs
@@ -38,6 +39,6 @@ endif
 
 rebuild:
 	make clean
-	make up
+	make build
 
-.PHONY: run up down view_db logs clean rebuild
+.PHONY: all build up run down view_db test logs clean rebuild

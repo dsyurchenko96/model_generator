@@ -14,7 +14,7 @@ def include_routers_from_init(fastapi_app: FastAPI):
             fastapi_app.include_router(router)
             print(f"Included router: {router}")
     except ImportError as e:
-        print(f"No routers found in __all__. Generate routers via gen-rest command. Error: {e}")
+        print(f"No routers found in __all__. Generate routers via gen-rest command. ({e})")
     except AttributeError:
         print("Error importing routers from __all__. No routers generated.")
 

@@ -38,8 +38,6 @@ def main(argv: Optional[list[str]] = None) -> int:
 
 def validate_arguments(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
     if args.subcommand == 'gen-models':
-        # if not is_valid_filename(args.json_schema):
-        #     parser.error(f'--json-schema {args.json_schema} is not a valid filename')
         if args.json_schema == '':
             parser.error('--json-schema is missing required argument')
         elif not is_valid_filepath(args.out_dir):
@@ -84,8 +82,7 @@ def gen_models(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int
             if is_subset(user_schema, main_schema):
                 generate_model(user_schema, args.json_schema, args.out_dir)
             else:
-                print(f"{args.json_schema} is not a subset of {main_schema_filename}")
-                return 1
+                parser.error(f"{args.json_schema} is not a subset of {main_schema_filename}")
 
     except FileNotFoundError as fnf:
         parser.error(f"{fnf.filename} not found")
@@ -100,33 +97,31 @@ def gen_models(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int
 def gen_rest(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
     create_output_dir_if_not_exists(args.rest_routes)
     abs_directory = Path(args.models).resolve()
-    print(f"abs_directory: {abs_directory}")
     routers = []
     for path in abs_directory.glob("*.py"):
         if path.name == "__init__.py":
             continue
-        print(path.resolve())
+        abs_path = path.resolve()
+        if not is_valid_python_file(abs_path):
+            parser.error(f"{abs_path} is not a valid Python file")
+
         filename = path.name
         try:
             module_name, _ = filename.split(".py")
             kind, _ = module_name.split("Model")
+            if not filename or not module_name or not kind:
+                raise ValueError
         except ValueError:
-            parser.error(f"{path.resolve()} is not a valid model file. The filename must be <ModelKind>Model.py")
+            parser.error(f"{abs_path} is not a valid model file. The filename must be <ModelKind>Model.py")
             exit(1)
-        print(f"filename: {filename}, module_name: {module_name}, kind: {kind}")
-        if not filename or not module_name or not kind:
-            parser.error(f"{path.resolve()} is not a valid model file. The filename must be <ModelKind>Model.py")
-        if not is_valid_python_file(path.resolve()):
-            parser.error(f"{path.resolve()} is not a valid Python file")
+
         model_dir = get_module_dir(abs_directory, module_name)
-        print(f"model_dir: {model_dir}")
         values = {
             'model_dir': model_dir,
             'main_model': kind,
-            'config_model': 'Configuration',
             'kind': kind.lower(),
         }
-        print(f"generating router for {path.resolve()} with values: {values}")
+        print(f"generating router for {abs_path} with values: {values}")
         generate_router(values, kind, args.rest_routes)
         router_dir = get_module_dir(Path(args.rest_routes).resolve(), kind + "Router")
         routers.append((router_dir, kind + "Router"))

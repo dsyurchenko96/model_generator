@@ -6,10 +6,10 @@ from sqlalchemy.orm import Session
 from app.db import crud
 from app.db.database import get_db
 from app.models.app_model import App, Id, StateEnum
-from app.models.main_model import MainModel, SchemaConfigField
+from app.models.main_model import Configuration, MainModel
 
 router = APIRouter(
-    prefix="/kind",
+    prefix="/test",
     responses={
         "400": {"description": "Bad Request"},
         "404": {"description": "Not Found"},
@@ -79,7 +79,7 @@ def put_document_state(uuid: Id, state: StateEnum, db: Session = Depends(get_db)
 
 
 @router.put("/{uuid}/configuration/", status_code=200)
-def put_document_config(uuid: Id, config: SchemaConfigField, db: Session = Depends(get_db)):
+def put_document_config(uuid: Id, config: Configuration, db: Session = Depends(get_db)):
     response = crud.update_document_configuration(db, uuid, config)
     if response is None:
         raise HTTPException(status_code=404, detail="Document not found")

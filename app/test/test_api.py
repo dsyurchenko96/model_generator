@@ -12,7 +12,7 @@ valid_json = {
     "configuration": {"settings": {}, "specification": {}},
 }
 
-endpoint = "/kind"
+endpoint = "/test"
 
 
 class TestPostDocument:
